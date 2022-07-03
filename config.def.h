@@ -5,7 +5,7 @@
  *
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
-static char *font = "Liberation Mono:pixelsize=30:antialias=true:autohint=true";
+static char *font = "Liberation Mono:pixelsize=32:antialias=true:autohint=true";
 static int borderpx = 2;
 
 /*
@@ -94,48 +94,57 @@ char *termname = "st-256color";
 unsigned int tabspaces = 4;
 
 /* bg opacity */
-float alpha = 0.7;
+float alpha = 0.75;
 
 /* Terminal colors (16 first used in escape sequence) */
 static const char *colorname[] = {
-	/* 8 normal colors */
-	"black",
-	"red3",
-	"green3",
-	"yellow3",
-	"blue2",
-	"magenta3",
-	"cyan3",
-	"gray90",
 
-	/* 8 bright colors */
-	"gray50",
-	"red",
-	"green",
-	"yellow",
-	"#5c5cff",
-	"magenta",
-	"cyan",
-	"white",
+// normal:
+     [0] = "#21222c", // black
+     [1] = "#ff5555", // red
+     [2] = "#50fa7b", // green
+     [3] = "#f1fa8c", // yellow
+     [4] = "#bd93f9", // blue
+     [5] = "#ff79c6", // magenta
+     [6] = "#8be9fd", // cyan
+     [7] = "#f8f8f2", // white
 
-	[255] = 0,
+// Bright
+     [8] = "#6272a4", // black
+     [9] = "#ff6e6e", // red
+     [10] = "#69ff94", // green
+     [11] = "#ffffa5", // yellow
+     [12] = "#d6acff", // blue
+     [13] = "#ff92df", // magenta
+     [14] = "#a4ffff", // cyan
+     [15] = "#ffffff", // white
+
+    /* special colors */
+    [256] = "#101421", /* background */
+    [257] = "#f8f8f2", /* foreground */
 
 	/* more colors can be added after 255 to use with DefaultXX */
-	"#cccccc",
-	"#555555",
-	"gray90", /* default foreground colour */
-	"black", /* default background colour */
+	[258] = "#cccccc",
+	[259] = "#555555",
 };
 
 
 /*
  * Default colors (colorname index)
- * foreground, background, cursor, reverse cursor
+ * foreground, background, cursor
  */
-unsigned int defaultfg = 258;
-unsigned int defaultbg = 259;
-unsigned int defaultcs = 256;
-static unsigned int defaultrcs = 257;
+unsigned int defaultfg = 257;
+unsigned int defaultbg = 256;
+unsigned int defaultcs = 257;
+static unsigned int defaultrcs = 256;
+
+/*
+ * Colors used, when the specific fg == defaultfg. So in reverse mode this
+ * will reverse too. Another logic would only make the simple feature too
+ * complex.
+ */
+unsigned int defaultitalic = 7;
+unsigned int defaultunderline = 7;
 
 /*
  * Default shape of cursor
