@@ -167,6 +167,7 @@ static void sigchld(int);
 static void ttywriteraw(const char *, size_t);
 
 static void csidump(void);
+static void csiprint(CSIEscape *csi);
 static void csihandle(void);
 static void csiparse(void);
 static void csireset(void);
@@ -1898,6 +1899,11 @@ csihandle(void)
 		default:
 			goto unknown;
 		}
+        break;
+    case '>': /*extended keys*/
+        // Basically I can't figure out what neovim actually expects to happen when it sends this.
+        // Nothing bad seems to happen by ignoring it, so I shall continue to do so.
+        break;
 	}
 }
 
@@ -1923,6 +1929,23 @@ csidump(void)
 		}
 	}
 	putc('\n', stderr);
+}
+
+void
+csiprint(CSIEscape *csi)
+{
+	const char *buf = csi->buf;
+	size_t len = csi->len;
+	char priv = csi->priv;
+	const int *arg = csi->arg;
+	int narg = csi->narg;
+	const char *mode = csi->mode;
+    printf("buf = %s\n\tlen = %lu; priv = %c; mode = %s\n\t", buf, len, priv, mode);
+    printf("arg[%d] = [", narg);
+    for(int i = 0; i < narg; i++){
+        printf("%s%d", i != 0 ? ", " : "", arg[i]);
+    }
+    puts("]");
 }
 
 void
