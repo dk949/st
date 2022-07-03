@@ -124,20 +124,25 @@ static const char *colorname[] = {
     [256] = "#0B0E18", /* background */
     [257] = "#f8f8f2", /* foreground */
 
-	/* more colors can be added after 255 to use with DefaultXX */
-	[258] = "#cccccc",
-	[259] = "#555555",
+
+    // selection
+	[258] = "#44475a", // background
+	[259] = "#000000", // foreground // unused
 };
 
 
-/*
- * Default colors (colorname index)
- * foreground, background, cursor
- */
 unsigned int defaultfg = 257;
 unsigned int defaultbg = 256;
 unsigned int defaultcs = 257;
 static unsigned int defaultrcs = 256;
+
+unsigned int selectionbg = 258;
+unsigned int selectionfg = 259;
+
+// If 0 use selectionfg as foreground in order to have a uniform foreground-color
+// Else if 1 keep original foreground-color of each cell => more colors :)
+static int ignoreselfg = 1;
+
 
 /*
  * Colors used, when the specific fg == defaultfg. So in reverse mode this

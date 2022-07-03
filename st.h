@@ -25,6 +25,7 @@ enum glyph_attribute {
 	ATTR_NULL       = 0,
 	ATTR_BOLD       = 1 << 0,
 	ATTR_FAINT      = 1 << 1,
+	ATTR_BOLD_FAINT = ATTR_BOLD | ATTR_FAINT,
 	ATTR_ITALIC     = 1 << 2,
 	ATTR_UNDERLINE  = 1 << 3,
 	ATTR_BLINK      = 1 << 4,
@@ -35,7 +36,7 @@ enum glyph_attribute {
 	ATTR_WIDE       = 1 << 9,
 	ATTR_WDUMMY     = 1 << 10,
 	ATTR_LIGA       = 1 << 11,
-	ATTR_BOLD_FAINT = ATTR_BOLD | ATTR_FAINT,
+	ATTR_SELECTED   = 1 << 12,
 };
 
 enum selection_mode {
