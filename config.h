@@ -5,10 +5,11 @@
  *
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
-static char *font = "JetBrains Mono:pixelsize=32:antialias=true:autohint=true";
+#define FONT_SIZE "29"
+static char *font = "JetBrains Mono:pixelsize=" FONT_SIZE ":antialias=true:autohint=true";
 /* Spare fonts */
 static char *font2[] = {
-    "Noto Emoji :pixelsize=32:antialias=true:autohint=true",
+    "Noto Emoji :pixelsize=" FONT_SIZE ":antialias=true:autohint=true",
 };
 
 static int borderpx = 2;
