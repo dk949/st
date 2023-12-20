@@ -201,6 +201,10 @@ static void mousesel(XEvent *, int);
 static void mousereport(XEvent *);
 static char *kmap(KeySym, uint);
 static int match(uint, uint);
+static void handleusr1(int);
+static void handleusr2(int);
+static void installsighandlers(void);
+static void handleinterupts(void);
 
 static void run(void);
 static void usage(void);
@@ -239,6 +243,7 @@ static TermWindow win;
 static int tstki;                        /* title stack index */
 static char *titlestack[TITLESTACKSIZE]; /* title stack */
 static float alpha = NAN;
+static volatile sig_atomic_t usrsig;
 
 /* Font Ring Cache */
 enum { FRC_NORMAL, FRC_ITALIC, FRC_BOLD, FRC_ITALICBOLD };
@@ -1727,6 +1732,42 @@ int match(uint mask, uint state) {
     return mask == XK_ANY_MOD || mask == (state & ~ignoremod);
 }
 
+void handleusr1(int sig) {
+    usrsig = 1;
+}
+
+void handleusr2(int sig) {
+    usrsig = 2;
+}
+
+void installsighandlers() {
+    sigset_t mask;
+    sigfillset(&mask);
+
+    struct sigaction act;
+    act.sa_mask = mask;
+    act.sa_flags = 0;
+
+    /* Establish the signal handler. */
+    act.sa_handler = handleusr1;
+    if (sigaction(SIGUSR1, &act, NULL)) die("failed to set signal handler for USR1: %s\n", strerror(errno));
+
+    act.sa_handler = handleusr2;
+    if (sigaction(SIGUSR2, &act, NULL)) die("failed to set signal handler for USR2: %s\n", strerror(errno));
+}
+
+void handleinterupts(void) {
+    switch (usrsig) {
+        case 1: alpha = 1.f; break;
+        case 2: alpha = default_alpha; break;
+        default: return;
+    }
+    dc.col[defaultbg].color.alpha = (unsigned short)(0xffff * alpha);
+    dc.col[defaultbg].pixel &= 0x00FFFFFF;
+    dc.col[defaultbg].pixel |= (unsigned char)(0xff * alpha) << 24;
+    redraw();
+}
+
 char *kmap(KeySym k, uint state) {
     Key *kp;
     int i;
@@ -1861,6 +1902,8 @@ void run(void) {
         FD_SET(ttyfd, &rfd);
         FD_SET(xfd, &rfd);
 
+        handleinterupts();
+
         if (XPending(xw.dpy)) timeout = 0; /* existing events might not set xfd */
 
         seltv.tv_sec = timeout / 1E3;
@@ -1980,6 +2023,7 @@ run:
     xinit(cols, rows);
     xsetenv();
     selinit();
+    installsighandlers();
     run();
 
     return 0;

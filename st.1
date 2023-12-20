@@ -166,6 +166,13 @@ Copy the selected text to the clipboard selection.
 .TP
 .B Ctrl-Shift-v
 Paste from the clipboard selection.
+.SH SIGNALS
+.TP
+.BI USR1
+toggle transparency off (alpha = 1.0)
+.TP
+.BI USR2
+toggle transparency on (alpha set back to default, either from config.h or from \-A)
 .SH CUSTOMIZATION
 .B st
 can be customized by creating a custom config.h and (re)compiling the source
