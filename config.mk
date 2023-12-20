@@ -21,8 +21,10 @@ LIBS     = `pkg-config $(REQ_LIBS) --libs` -lm -lrt -lutil
 
 # flags
 CPPFLAGS = -DVERSION=\"$(VERSION)\" -D_XOPEN_SOURCE=600
-CFLAGS = $(LIBFLAGS) $(CPPFLAGS) -O3
-LDFLAGS = $(LIBS)
+CFLAGS  ?=
+LDFLAGS ?=
+CFLAGS  += $(LIBFLAGS) $(CPPFLAGS) -O3
+LDFLAGS += $(LIBS)
 
 # compiler and linker
 CC ?= gcc
