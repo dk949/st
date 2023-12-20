@@ -231,6 +231,7 @@ static XSelection xsel;
 static TermWindow win;
 static int tstki; /* title stack index */
 static char *titlestack[TITLESTACKSIZE]; /* title stack */
+static float alpha = NAN;
 
 /* Font Ring Cache */
 enum {
@@ -830,9 +831,13 @@ xloadcols(void)
 				die("could not allocate color %d\n", i);
 		}
 
-	/* set alpha value of bg color */
-	if (opt_alpha)
-		alpha = strtof(opt_alpha, NULL);
+	/* set alpha value of bg color if not yet set */
+    if(isnan(alpha)){
+        if (opt_alpha)
+            alpha = default_alpha = strtof(opt_alpha, NULL);
+        else
+            alpha = default_alpha;
+    }
 	dc.col[defaultbg].color.alpha = (unsigned short)(0xffff * alpha);
 	dc.col[defaultbg].pixel &= 0x00FFFFFF;
 	dc.col[defaultbg].pixel |= (unsigned char)(0xff * alpha) << 24;
