@@ -12,6 +12,7 @@ endif
 DESTDIR   ?=
 PREFIX    ?= /usr/local
 MANPREFIX ?= $(PREFIX)/share/man
+TIPREFIX  ?= $(PREFIX)/share/terminfo
 
 REQ_LIBS = x11 xrender xft fontconfig freetype2 harfbuzz
 
