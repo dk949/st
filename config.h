@@ -10,8 +10,9 @@ static char *font = "JetBrainsMono Nerd Font:pixelsize=" FONT_SIZE ":antialias=t
 /* Spare fonts */
 static char *font2[] = {
     "JetBrains Mono:pixelsize=" FONT_SIZE ":antialias=true:autohint=true",
-    "Noto Emoji :pixelsize=" FONT_SIZE ":antialias=true:autohint=true",
+    "Noto Emoji:pixelsize=" FONT_SIZE ":antialias=true:autohint=true",
 };
+
 
 static int borderpx = 2;
 
@@ -267,7 +268,7 @@ static uint ignoremod = Mod2Mask | XK_SWITCH_MOD;
  * world. Please decide about changes wisely.
  */
 static Key key[] = {
-  /* keysym           mask            string      appkey appcursor */
+  /*        keysym                              mask      string     appkey appcursor */
     {     XK_KP_Home,                          ShiftMask,    "\033[2J",  0, -1},
     {     XK_KP_Home,                          ShiftMask,  "\033[1;2H",  0, +1},
     {     XK_KP_Home,                         XK_ANY_MOD,     "\033[H",  0, -1},
