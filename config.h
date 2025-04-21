@@ -76,6 +76,20 @@ static unsigned int blinktimeout = 800;
 static unsigned int cursorthickness = 2;
 
 /*
+ * Thickness of the underline and strikethrough decorations
+ * (Looks best when they're the same)
+ */
+static unsigned int const underlinethickness = 2;
+static unsigned int const strikethroughthickness = 2;
+
+/*
+ * How much is the *bottom* of the underline offset from the bottom of the letters
+ * If this is < underlinethickness underline will be drawn over the letters
+ * If it's too big, underline will be drawn on top of the text below it
+ */
+static unsigned int const underlineoffset = underlinethickness + 2;
+
+/*
  * bell volume. It must be a value between -100 and 100. Use 0 for disabling
  * it
  */

@@ -1466,11 +1466,11 @@ void xdrawglyphfontspecs(XftGlyphFontSpec const *specs, Glyph base, int len, int
 
         /* Render underline and strikethrough. */
         if (base.mode & ATTR_UNDERLINE) {
-            XftDrawRect(xw.draw, fg, winx, winy + dc.font.ascent + 1, width, 1);
+            XftDrawRect(xw.draw, fg, winx, winy + dc.font.ascent + underlineoffset, width, underlinethickness);
         }
 
         if (base.mode & ATTR_STRUCK) {
-            XftDrawRect(xw.draw, fg, winx, winy + 2 * dc.font.ascent / 3, width, 1);
+            XftDrawRect(xw.draw, fg, winx, winy + 2 * dc.font.ascent / 3, width, strikethroughthickness);
         }
     }
 }
