@@ -196,6 +196,7 @@ static void tcontrolcode(uchar);
 static void tdectest(char);
 static void tdefutf8(char);
 static int32_t tdefcolor(int const *, int *, int);
+static void tsetulstyle(int const *attr, int *npar, int l);
 static void tdeftran(char);
 static void tstrsequence(uchar);
 
@@ -1100,6 +1101,11 @@ void csiparse(void) {
     char *p = csiescseq.buf, *np;
     long int v;
 
+    /*
+     * In some escapes, like [4:3m, the ':' is significant, in others, it's just a separator
+     * Where it's significant, the arg is replaced by a CSIEX_* version
+     * */
+
     csiescseq.narg = 0;
     if (*p == '?') {
         csiescseq.priv = 1;
@@ -1114,7 +1120,12 @@ void csiparse(void) {
         if (v == LONG_MAX || v == LONG_MIN) v = -1;
         csiescseq.arg[csiescseq.narg++] = v;
         p = np;
-        if (*p != ';' || csiescseq.narg == ESC_ARG_SIZ) break;
+        if (*p == ':') {
+            switch (csiescseq.arg[csiescseq.narg - 1]) {
+                case 4: csiescseq.arg[csiescseq.narg - 1] = CSIEX_ULINE_STYLE; break;
+            }
+        } else if (*p != ';' || csiescseq.narg == ESC_ARG_SIZ)
+            break;
         p++;
     }
     csiescseq.mode[0] = *p++;
@@ -1292,6 +1303,33 @@ void tdeleteline(int n) {
     if (BETWEEN(term.c.y, term.top, term.bot)) tscrollup(term.c.y, n, 0);
 }
 
+// Kitty/mintty underline style
+// https://sw.kovidgoyal.net/kitty/underlines/
+static void tsetulstyle(int const *attr, int *npar, int l) {
+
+    // Underline style
+
+    if (*npar + 1 >= l) {
+        fprintf(stderr, "erresc(4): not enough arguments\n");
+        return;
+    }
+    ++(*npar);
+    term.c.attr.mode |= ATTR_UNDERLINE;
+    switch (attr[*npar]) {
+        case 0:
+            term.c.attr.ulstyle = ULINE_NORMAL;
+            term.c.attr.mode &= ~ATTR_UNDERLINE;
+            term.c.attr.ul = 0;
+            break;                                                     // same as [24m
+        case ULINE_NORMAL: term.c.attr.ulstyle = ULINE_NORMAL; break;  // Same as [4m
+        case ULINE_DOUBLE: term.c.attr.ulstyle = ULINE_DOUBLE; break;
+        case ULINE_CURL: term.c.attr.ulstyle = ULINE_CURL; break;
+        case ULINE_DOT: term.c.attr.ulstyle = ULINE_DOT; break;
+        case ULINE_DASH: term.c.attr.ulstyle = ULINE_DASH; break;
+        default: fprintf(stderr, "erresc(4): invalid underline style (%d)\n", attr[*npar]);
+    }
+}
+
 int32_t tdefcolor(int const *attr, int *npar, int l) {
     int32_t idx = -1;
     uint r, g, b;
@@ -1343,6 +1381,8 @@ void tsetattr(int const *attr, int l) {
                                       | ATTR_INVISIBLE | ATTR_STRUCK);
                 term.c.attr.fg = defaultfg;
                 term.c.attr.bg = defaultbg;
+                term.c.attr.ulstyle = ULINE_NORMAL;
+                term.c.attr.ul = 0;
                 break;
             case 1: term.c.attr.mode |= ATTR_BOLD; break;
             case 2: term.c.attr.mode |= ATTR_FAINT; break;
@@ -1356,7 +1396,11 @@ void tsetattr(int const *attr, int l) {
             case 9: term.c.attr.mode |= ATTR_STRUCK; break;
             case 22: term.c.attr.mode &= ~(ATTR_BOLD | ATTR_FAINT); break;
             case 23: term.c.attr.mode &= ~ATTR_ITALIC; break;
-            case 24: term.c.attr.mode &= ~ATTR_UNDERLINE; break;
+            case 24:
+                term.c.attr.mode &= ~ATTR_UNDERLINE;
+                term.c.attr.ulstyle = ULINE_NORMAL;
+                term.c.attr.ul = 0;
+                break;
             case 25: term.c.attr.mode &= ~ATTR_BLINK; break;
             case 27: term.c.attr.mode &= ~ATTR_REVERSE; break;
             case 28: term.c.attr.mode &= ~ATTR_INVISIBLE; break;
@@ -1369,6 +1413,11 @@ void tsetattr(int const *attr, int l) {
                 if ((idx = tdefcolor(attr, &i, l)) >= 0) term.c.attr.bg = idx;
                 break;
             case 49: term.c.attr.bg = defaultbg; break;
+            case 58:
+                if ((idx = tdefcolor(attr, &i, l)) >= 0) term.c.attr.ul = UL_SET_COLOR(idx);
+                break;
+            case 59: term.c.attr.ul = 0; break;
+            case CSIEX_ULINE_STYLE: tsetulstyle(attr, &i, l); break;
             default:
                 if (BETWEEN(attr[i], 30, 37)) {
                     term.c.attr.fg = attr[i] - 30;
