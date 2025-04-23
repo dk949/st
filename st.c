@@ -76,6 +76,12 @@ enum escape_state {
     ESC_UTF8 = 64,
 };
 
+enum csi_extensions {
+    CSIEXBIT = 1 << 30,  // Let's hope this isn't used for anything 🤷
+    CSIEX_ULINE_STYLE = CSIEXBIT | 1,
+
+};
+
 typedef struct {
     Glyph attr; /* current char attributes */
     int x;
@@ -950,7 +956,7 @@ void treset(void) {
     uint i;
 
     term.c = (TCursor) {
-        {.mode = ATTR_NULL, .fg = defaultfg, .bg = defaultbg},
+        .attr = {.mode = ATTR_NULL, .fg = defaultfg, .bg = defaultbg, .ul = 0},
         .x = 0,
         .y = 0,
         .state = CURSOR_DEFAULT
@@ -974,7 +980,7 @@ void treset(void) {
 }
 
 void tnew(int col, int row) {
-    term = (Term) {.c = {.attr = {.fg = defaultfg, .bg = defaultbg}}};
+    term = (Term) {.c = {.attr = {.fg = defaultfg, .bg = defaultbg, .ul = 0}}};
     tresize(col, row);
     treset();
 }
@@ -1259,6 +1265,7 @@ void tclearregion(int x1, int y1, int x2, int y2) {
             if (selected(x, y)) selclear();
             gp->fg = term.c.attr.fg;
             gp->bg = term.c.attr.bg;
+            gp->ul = term.c.attr.ul;
             gp->mode = 0;
             gp->u = ' ';
         }

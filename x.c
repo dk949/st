@@ -1370,9 +1370,8 @@ int xmakeglyphfontspecs(XftGlyphFontSpec *specs, Glyph const *glyphs, int len, i
 void xdrawglyphfontspecs(XftGlyphFontSpec const *specs, Glyph base, int len, int x, int y, int dmode) {
     int charlen = len * ((base.mode & ATTR_WIDE) ? 2 : 1);
     int winx = win.hborderpx + x * win.cw, winy = win.vborderpx + y * win.ch, width = charlen * win.cw;
-    Color *fg, *bg, *temp, revfg, revbg, truefg, truebg;
-    XRenderColor colfg, colbg;
-    XRectangle r;
+    Color *fg, *bg, *ul, *temp, revfg, revbg, truefg, truebg, trueul;
+    XRenderColor colfg, colbg, colul;
 
     /* Fallback on color display for attributes not supported by the font */
     if (base.mode & ATTR_ITALIC && base.mode & ATTR_BOLD) {
@@ -1456,6 +1455,24 @@ void xdrawglyphfontspecs(XftGlyphFontSpec const *specs, Glyph base, int len, int
     if (base.mode & ATTR_BLINK && win.mode & MODE_BLINK) fg = bg;
 
     if (base.mode & ATTR_INVISIBLE) fg = bg;
+
+    if (!base.ul) {
+        ul = fg;
+    } else {
+        uint baseul = UL_GET_COLOR(base.ul);
+        if (IS_TRUECOL(baseul)) {
+            fprintf(stderr, "UL truecolor: 0x%x\n", baseul);
+            colul.alpha = 0xffff;
+            colul.red = TRUERED(baseul);
+            colul.green = TRUEGREEN(baseul);
+            colul.blue = TRUEBLUE(baseul);
+            XftColorAllocValue(xw.dpy, xw.vis, xw.cmap, &colul, &trueul);
+            ul = &trueul;
+        } else {
+            fprintf(stderr, "UL color: 0x%x\n", baseul);
+            ul = &dc.col[baseul];
+        }
+    }
 
     if (dmode & DRAW_BG) {
         /* Intelligent cleaning up of the borders. */
