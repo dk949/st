@@ -26,4 +26,4 @@ CFLAGS  = $(LIBFLAGS) $(CPPFLAGS) -O3
 LDFLAGS = $(LIBS)
 
 # compiler and linker
-CC ?= gcc
+CC = cc
