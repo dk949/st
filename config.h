@@ -5,6 +5,7 @@
  *
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
+static double const font_scale = 29;
 #define FONT_SIZE "29"
 static char *font = "JetBrainsMono Nerd Font:pixelsize=" FONT_SIZE ":antialias=true:autohint=true";
 /* Spare fonts */
@@ -79,8 +80,10 @@ static unsigned int cursorthickness = 2;
  * Thickness of the underline and strikethrough decorations
  * (Looks best when they're the same)
  */
-static unsigned int const underlinethickness = 2;
-static unsigned int const strikethroughthickness = 2;
+static unsigned int const strikethroughthickness = 2 * font_scale;
+static unsigned int const underlinethickness = 2 * font_scale;
+static unsigned int const underdoublethickness = 1 * font_scale;  // This is the thickness of each of the doubel lines
+static unsigned int const underdoublegap = 3 * font_scale;        // This is the thickness of each of the doubel lines
 
 /*
  * How much is the *bottom* of the underline offset from the bottom of the letters
