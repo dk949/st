@@ -74,6 +74,8 @@ static unsigned int xunderlinethickness = underlinethickness;
 static unsigned int xunderdoublethickness = underdoublethickness;
 static unsigned int xunderdoublegap = underdoublegap;
 static unsigned int xunderlineoffset = underlineoffset;
+static unsigned int xundercurlthickness = undercurlthickness;
+static unsigned int xundercurlamplitude = undercurlamplitude;
 
 /* size of title stack */
 #define TITLESTACKSIZE 8
@@ -158,6 +160,7 @@ typedef struct {
     size_t collen;
     Font font, bfont, ifont, ibfont;
     GC gc;
+    GC undercurlgc;
 } DC;
 
 static inline ushort sixd_to_16bit(int);
@@ -1149,7 +1152,6 @@ void xinit(int cols, int rows) {
 
     usedfont = (opt_font == NULL) ? font : opt_font;
     xloadfonts(usedfont, 0);
-    updatelinethickness();
 
     /* spare fonts */
     xloadsparefonts();
@@ -1191,6 +1193,19 @@ void xinit(int cols, int rows) {
     dc.gc = XCreateGC(xw.dpy, xw.buf, GCGraphicsExposures, &gcvalues);
     XSetForeground(xw.dpy, dc.gc, dc.col[defaultbg].pixel);
     XFillRectangle(xw.dpy, xw.buf, dc.gc, 0, 0, win.w, win.h);
+
+    memset(&gcvalues, 0, sizeof(gcvalues));
+    gcvalues.graphics_exposures = False;
+    gcvalues.line_width = xundercurlthickness;
+    gcvalues.line_style = undercurlline;
+    gcvalues.cap_style = undercurlcap;
+    gcvalues.join_style = undercurljoin;
+    dc.undercurlgc =
+        XCreateGC(xw.dpy, xw.buf, GCGraphicsExposures | GCLineWidth | GCLineStyle | GCCapStyle | GCJoinStyle, &gcvalues);
+    // XSetForeground(xw.dpy, dc.gc, dc.col[defaultbg].pixel);
+    // XFillRectangle(xw.dpy, xw.buf, dc.gc, 0, 0, win.w, win.h);
+
+    updatelinethickness();
 
     /* font spec buffer */
     xw.specbuf = xmalloc(cols * sizeof(GlyphFontSpec));
@@ -1529,7 +1544,7 @@ void printpoints(int len, XPoint points[len]) {
 void createsinewave(XPoint *points, double x0, double y0, double width, double height, double freq, int point_count) {
     if (point_count < 2) return;
     // Total number of cycles across the box:
-    double cycles = freq * (width / 100.0);
+    double cycles = freq * (width / usedfontsize);
     // Vertical center and amplitude
     double y_mid = y0 + height * 0.5;
     double y_amp = height * 0.5;
@@ -1550,7 +1565,17 @@ void createsinewave(XPoint *points, double x0, double y0, double width, double h
 
 void drawundercurl(Color *color, int x, int y, int width) {
     // TODO: Using dots instead of undercurl for now
-    return drawunderdash(color, x, y, width, 1);
+    int points_per_w = 10;
+    int point_count = width * points_per_w;
+    XPoint *points = (XPoint *)xmalloc(sizeof(XPoint) * point_count);
+    createsinewave(points, x, y + dc.font.ascent + xunderlineoffset, width, xundercurlamplitude, undercurlfreq, point_count);
+    // This is not an XRender based drawing routine, so need to set pixel alpha value
+    color->pixel |= (ulong)((ushort)(color->color.alpha >> 8) & 0xff) << 24;
+    XSetForeground(xw.dpy, dc.undercurlgc, color->pixel);
+    XDrawLines(xw.dpy, xw.buf, dc.undercurlgc, points, point_count, CoordModeOrigin);
+
+    free(points);
+    XFlush(xw.dpy);
 }
 
 void drawunderdash(Color *color, int x, int y, int width, int ratio) {
@@ -1589,7 +1614,10 @@ void updatelinethickness() {
     UPDATE_THICKNESS_(underlineoffset);
     UPDATE_THICKNESS_(underdoublethickness);
     UPDATE_THICKNESS_(underdoublegap);
+    UPDATE_THICKNESS_(undercurlthickness);
+    UPDATE_THICKNESS_(undercurlamplitude);
 #undef UPDATE_THICKNESS_
+    XSetLineAttributes(xw.dpy, dc.undercurlgc, xundercurlthickness, undercurlline, undercurlcap, undercurljoin);
 }
 
 void xdrawcursor(int cx, int cy, Glyph g, int ox, int oy, Glyph og, Line line, int len) {
