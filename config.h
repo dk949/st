@@ -90,7 +90,7 @@ static unsigned int const underdoublegap = 3 * font_scale;        // This is the
  * If this is < underlinethickness underline will be drawn over the letters
  * If it's too big, underline will be drawn on top of the text below it
  */
-static unsigned int const underlineoffset = underlinethickness + 2;
+static unsigned int const underlineoffset = underlinethickness + 3 * font_scale;
 
 /*
  * bell volume. It must be a value between -100 and 100. Use 0 for disabling
