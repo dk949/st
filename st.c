@@ -78,8 +78,7 @@ enum escape_state {
 
 enum csi_extensions {
     CSIEXBIT = 1 << 30,  // Let's hope this isn't used for anything 🤷
-    CSIEX_ULINE_STYLE = CSIEXBIT | 1,
-
+    CSIEX_ULINE_STYLE = CSIEXBIT | 4,
 };
 
 typedef struct {
@@ -1059,6 +1058,9 @@ void csiparse(void) {
             switch (csiescseq.arg[csiescseq.narg - 1]) {
                 case 4: csiescseq.arg[csiescseq.narg - 1] = CSIEX_ULINE_STYLE; break;
             }
+            if (p + 1 < csiescseq.buf + csiescseq.len && *(p + 1) == ':') {
+                ++p;
+            }
         } else if (*p != ';' || csiescseq.narg == ESC_ARG_SIZ)
             break;
         p++;
@@ -1276,9 +1278,9 @@ int32_t tdefcolor(int const *attr, int *npar, int l) {
                 fprintf(stderr, "erresc(38): Incorrect number of parameters (%d)\n", *npar);
                 break;
             }
-            r = attr[*npar + 2];
-            g = attr[*npar + 3];
-            b = attr[*npar + 4];
+            r = ~CSIEXBIT & attr[*npar + 2];
+            g = ~CSIEXBIT & attr[*npar + 3];
+            b = ~CSIEXBIT & attr[*npar + 4];
             *npar += 4;
             if (!BETWEEN(r, 0, 255) || !BETWEEN(g, 0, 255) || !BETWEEN(b, 0, 255))
                 fprintf(stderr, "erresc: bad rgb color (%u,%u,%u)\n", r, g, b);
@@ -1291,16 +1293,21 @@ int32_t tdefcolor(int const *attr, int *npar, int l) {
                 break;
             }
             *npar += 2;
-            if (!BETWEEN(attr[*npar], 0, 255))
+            uint col = ~CSIEXBIT & attr[*npar];
+
+            if (!BETWEEN(col, 0, 255))
                 fprintf(stderr, "erresc: bad fgcolor %d\n", attr[*npar]);
             else
-                idx = attr[*npar];
+                idx = col;
             break;
         case 0: /* implemented defined (only foreground) */
         case 1: /* transparent */
         case 3: /* direct color in CMY space */
         case 4: /* direct color in CMYK space */
-        default: fprintf(stderr, "erresc(38): gfx attr %d unknown\n", attr[*npar]); break;
+        default:
+            fprintf(stderr, "erresc(38): gfx attr %d unknown: ", attr[*npar]);
+            csidump();
+            break;
     }
 
     return idx;
@@ -1364,7 +1371,7 @@ void tsetattr(int const *attr, int l) {
                 } else if (BETWEEN(attr[i], 100, 107)) {
                     term.c.attr.bg = attr[i] - 100 + 8;
                 } else {
-                    fprintf(stderr, "erresc(default): gfx attr %d unknown\n", attr[i]);
+                    fprintf(stderr, "erresc(default): gfx attr %d unknown: ", attr[i]);
                     csidump();
                 }
                 break;
