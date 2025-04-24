@@ -1460,7 +1460,6 @@ void xdrawglyphfontspecs(XftGlyphFontSpec const *specs, Glyph base, int len, int
     } else {
         uint baseul = UL_GET_COLOR(base.ul);
         if (IS_TRUECOL(baseul)) {
-            fprintf(stderr, "UL truecolor: 0x%x\n", baseul);
             colul.alpha = 0xffff;
             colul.red = TRUERED(baseul);
             colul.green = TRUEGREEN(baseul);
@@ -1468,7 +1467,6 @@ void xdrawglyphfontspecs(XftGlyphFontSpec const *specs, Glyph base, int len, int
             XftColorAllocValue(xw.dpy, xw.vis, xw.cmap, &colul, &trueul);
             ul = &trueul;
         } else {
-            fprintf(stderr, "UL color: 0x%x\n", baseul);
             ul = &dc.col[baseul];
         }
     }
