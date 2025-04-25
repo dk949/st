@@ -21,8 +21,6 @@
 
 #define TRUECOLOR(r, g, b) (1 << 24 | (r) << 16 | (g) << 8 | (b))
 #define IS_TRUECOL(x)      (1 << 24 & (x))
-#define UL_SET_COLOR(col)  (1 << 25 | (col))
-#define UL_GET_COLOR(col)  (~(1 << 25) & (col))
 
 // WARN: This gets stored as a ushort! only 16 bits
 enum glyph_attribute {
@@ -73,12 +71,10 @@ typedef uint_least32_t Rune;
 #define Glyph Glyph_
 
 typedef struct {
-    Rune u;         /* character code */
-    ushort mode;    /* attribute flags */
-    ushort ulstyle; /*underline style NOTE: This could be a uchar */
-    uint32_t fg;    /* foreground  */
-    uint32_t bg;    /* background  */
-    uint32_t ul;    /*underline color*/
+    Rune u;      /* character code */
+    ushort mode; /* attribute flags */
+    ushort ulstyle; /*underline style*/  // NOTE: This could be a uchar
+    uint32_t bg; /* background  */
 } Glyph;
 
 typedef Glyph *Line;
