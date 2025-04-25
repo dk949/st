@@ -1286,7 +1286,10 @@ void tsetattr(int const *attr, int l) {
             case 1: term.c.attr.mode |= ATTR_BOLD; break;
             case 2: term.c.attr.mode |= ATTR_FAINT; break;
             case 3: term.c.attr.mode |= ATTR_ITALIC; break;
-            case 4: term.c.attr.mode |= ATTR_UNDERLINE; break;
+            case 4:
+                term.c.attr.ulstyle = ULINE_NORMAL;
+                term.c.attr.mode |= ATTR_UNDERLINE;
+                break;
             case 5: /* slow blink */
                     /* FALLTHROUGH */
             case 6: /* rapid blink */ term.c.attr.mode |= ATTR_BLINK; break;
