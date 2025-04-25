@@ -30,14 +30,14 @@ typedef struct {
     uint mod;
     KeySym keysym;
     void (*func)(Arg const *);
-    Arg const arg;
+    const Arg arg;
 } Shortcut;
 
 typedef struct {
     uint mod;
     uint button;
     void (*func)(Arg const *);
-    Arg const arg;
+    const Arg arg;
     uint release;
     int altscrn; /* 0: don't care, -1: not alt screen, 1: alt screen */
 } MouseShortcut;
@@ -84,9 +84,9 @@ static unsigned int xunderlineoffset = underlineoffset;
 
 /* macros */
 #define IS_SET(flag) ((win.mode & (flag)) != 0)
-#define TRUERED(x)   (((x) & 0xff0000) >> 8)
-#define TRUEGREEN(x) (((x) & 0xff00))
-#define TRUEBLUE(x)  (((x) & 0xff) << 8)
+#define TRUERED(x)   (((x)&0xff0000) >> 8)
+#define TRUEGREEN(x) (((x)&0xff00))
+#define TRUEBLUE(x)  (((x)&0xff) << 8)
 
 typedef XftDraw *Draw;
 typedef XftColor Color;
@@ -185,6 +185,7 @@ static void xsetenv(void);
 static void xseturgency(int);
 static int evcol(XEvent *);
 static int evrow(XEvent *);
+
 static void expose(XEvent *);
 static void visibility(XEvent *);
 static void unmap(XEvent *);
@@ -776,7 +777,7 @@ void xloadcols(void) {
     }
     dc.col[defaultbg].color.alpha = (unsigned short)(0xffff * alpha);
     dc.col[defaultbg].pixel &= 0x00FFFFFF;
-    dc.col[defaultbg].pixel |= (unsigned long)(unsigned char)(0xff * alpha) << 24;
+    dc.col[defaultbg].pixel |= (unsigned char)(0xff * alpha) << 24;
     loaded = 1;
 }
 
@@ -1875,7 +1876,7 @@ void handleinterupts(void) {
     }
     dc.col[defaultbg].color.alpha = (unsigned short)(0xffff * alpha);
     dc.col[defaultbg].pixel &= 0x00FFFFFF;
-    dc.col[defaultbg].pixel |= (unsigned long)(unsigned char)(0xff * alpha) << 24;
+    dc.col[defaultbg].pixel |= (unsigned char)(0xff * alpha) << 24;
     redraw();
 }
 

@@ -48,7 +48,7 @@
 #define ISCONTROL(c)   (ISCONTROLC0(c) || ISCONTROLC1(c))
 #define ISDELIM(u)     (u && wcschr(worddelimiters, u))
 #define TLINE(y) \
-    ((y) < term.scr ? term.hist[((y) + term.histi - term.scr + HISTSIZE + 1) % HISTSIZE] : term.line[(y) - term.scr])
+    ((y) < term.scr ? term.hist[((y) + term.histi - term.scr + HISTSIZE + 1) % HISTSIZE] : term.line[(y)-term.scr])
 
 enum term_mode {
     MODE_WRAP = 1 << 0,
@@ -231,10 +231,10 @@ static int iofd = 1;
 static int cmdfd;
 static pid_t pid;
 
-static uchar const utfbyte[UTF_SIZ + 1] = {0x80, 0, 0xC0, 0xE0, 0xF0};
-static uchar const utfmask[UTF_SIZ + 1] = {0xC0, 0x80, 0xE0, 0xF0, 0xF8};
-static Rune const utfmin[UTF_SIZ + 1] = {0, 0, 0x80, 0x800, 0x10000};
-static Rune const utfmax[UTF_SIZ + 1] = {0x10FFFF, 0x7F, 0x7FF, 0xFFFF, 0x10FFFF};
+static const uchar utfbyte[UTF_SIZ + 1] = {0x80, 0, 0xC0, 0xE0, 0xF0};
+static const uchar utfmask[UTF_SIZ + 1] = {0xC0, 0x80, 0xE0, 0xF0, 0xF8};
+static const Rune utfmin[UTF_SIZ + 1] = {0, 0, 0x80, 0x800, 0x10000};
+static const Rune utfmax[UTF_SIZ + 1] = {0x10FFFF, 0x7F, 0x7FF, 0xFFFF, 0x10FFFF};
 
 ssize_t xwrite(int fd, char const *s, size_t len) {
     size_t aux = len;
@@ -334,15 +334,86 @@ char base64dec_getc(char const **src) {
 char *base64dec(char const *src) {
     size_t in_len = strlen(src);
     char *result, *dst;
-    static char const base64_digits[256] = {
-        // clang-format off
-        [43] = 62, 0, 0, 0, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 0,
-        0, 0, -1, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-        10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
-        0, 0, 0, 0, 0, 0, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
-        36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51,
-        // clang-format on
-    };
+    static char const base64_digits[256] = {[43] = 62,
+        0,
+        0,
+        0,
+        63,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        0,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51};
 
     if (in_len % 4) in_len += 4 - (in_len % 4);
     result = dst = xmalloc(in_len / 4 * 3 + 1);
@@ -1664,7 +1735,6 @@ unknown:
         case '>': /*extended keys*/
             // Basically I can't figure out what neovim actually expects to happen when it sends this.
             // Nothing bad seems to happen by ignoring it, so I shall continue to do so.
-            // TODO(dk949): ...maybe I should actually try to fix this...
             break;
     }
 }

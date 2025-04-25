@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include <X11/Xft/Xft.h>
 #include <hb.h>
 #include <hb-ft.h>
@@ -11,7 +12,7 @@
 // clang-format on
 
 #define FEATURE(c1, c2, c3, c4) \
-    {.tag = HB_TAG(c1, c2, c3, c4), .value = 1, .start = HB_FEATURE_GLOBAL_START, .end = HB_FEATURE_GLOBAL_END}
+    { .tag = HB_TAG(c1, c2, c3, c4), .value = 1, .start = HB_FEATURE_GLOBAL_START, .end = HB_FEATURE_GLOBAL_END }
 
 void hbtransformsegment(XftFont *xfont, Glyph const *string, hb_codepoint_t *codepoints, int start, int length);
 hb_font_t *hbfindfont(XftFont *match);
