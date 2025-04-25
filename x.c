@@ -69,12 +69,6 @@ static void ttysend(Arg const *);
 /* config.h for applying patches and the configuration. */
 #include "config.h"
 
-static unsigned int xstrikethroughthickness = strikethroughthickness;
-static unsigned int xunderlinethickness = underlinethickness;
-static unsigned int xunderdoublethickness = underdoublethickness;
-static unsigned int xunderdoublegap = underdoublegap;
-static unsigned int xunderlineoffset = underlineoffset;
-
 /* size of title stack */
 #define TITLESTACKSIZE 8
 
@@ -211,12 +205,6 @@ static void handleusr1(int);
 static void handleusr2(int);
 static void installsighandlers(void);
 static void handleinterupts(void);
-static void drawunderline(Glyph base, Color *color, int x, int y, int width);
-static void drawunderdouble(Color *color, int x, int y, int width);
-static void drawundercurl(Color *color, int x, int y, int width);
-static void drawunderdash(Color *color, int x, int y, int width, int ratio);
-static void updatelinethickness();
-
 
 static void run(void);
 static void usage(void);
@@ -324,7 +312,6 @@ void zoom(Arg const *arg) {
 void zoomabs(Arg const *arg) {
     xunloadfonts();
     xloadfonts(usedfont, arg->f);
-    updatelinethickness();
     xloadsparefonts();
     cresize(0, 0);
     redraw();
@@ -1150,7 +1137,6 @@ void xinit(int cols, int rows) {
 
     usedfont = (opt_font == NULL) ? font : opt_font;
     xloadfonts(usedfont, 0);
-    updatelinethickness();
 
     /* spare fonts */
     xloadsparefonts();
@@ -1480,11 +1466,11 @@ void xdrawglyphfontspecs(XftGlyphFontSpec const *specs, Glyph base, int len, int
 
         /* Render underline and strikethrough. */
         if (base.mode & ATTR_UNDERLINE) {
-            drawunderline(base, ul, winx, winy, width);
+            XftDrawRect(xw.draw, fg, winx, winy + dc.font.ascent + underlineoffset, width, underlinethickness);
         }
 
         if (base.mode & ATTR_STRUCK) {
-            XftDrawRect(xw.draw, fg, winx, winy + 2 * dc.font.ascent / 3, width, xstrikethroughthickness);
+            XftDrawRect(xw.draw, fg, winx, winy + 2 * dc.font.ascent / 3, width, strikethroughthickness);
         }
     }
 }
@@ -1495,87 +1481,6 @@ void xdrawglyph(Glyph g, int x, int y) {
 
     numspecs = xmakeglyphfontspecs(&spec, &g, 1, x, y);
     xdrawglyphfontspecs(&spec, g, numspecs, x, y, DRAW_BG | DRAW_FG);
-}
-
-void drawunderdouble(Color *color, int x, int y, int width) {
-    // TODO(dk949): Breaks when using a color???
-    int offset = xunderdoublegap + dc.font.ascent;
-
-    XftDrawRect(xw.draw, color, x, y + offset, width, xunderdoublethickness);
-    offset += xunderdoublegap;
-    XftDrawRect(xw.draw, color, x, y + offset, width, xunderdoublethickness);
-}
-
-void printpoints(int len, XPoint points[len]) {
-    for (int i = 0; i < len; ++i) {
-        fprintf(stderr, "%d,%d\n", points[i].x, points[i].y);
-    }
-}
-
-void createsinewave(XPoint *points, double x0, double y0, double width, double height, double freq, int point_count) {
-    if (point_count < 2) return;
-    // Total number of cycles across the box:
-    double cycles = freq * (width / 100.0);
-    // Vertical center and amplitude
-    double y_mid = y0 + height * 0.5;
-    double y_amp = height * 0.5;
-
-    for (int i = 0; i < point_count; i++) {
-        // t in [0..1]
-        double t = (double)i / (point_count - 1);
-        // x increases left→right
-        double x = x0 + t * width;
-        // angle from 0 to 2π·cycles
-        double angle = 2.0 * M_PI * cycles * t;
-        // invert sine so +1→top (y0), -1→bottom (y0+height)
-        double y = y_mid - sin(angle) * y_amp;
-        points[i].x = x;
-        points[i].y = y;
-    }
-}
-
-void drawundercurl(Color *color, int x, int y, int width) {
-    // TODO: Using dots instead of undercurl for now
-    return drawunderdash(color, x, y, width, 1);
-}
-
-void drawunderdash(Color *color, int x, int y, int width, int ratio) {
-    int segment_width = xunderlinethickness * ratio;
-    int half_segment_width = segment_width / 2;
-    half_segment_width = MAX(half_segment_width, 1);
-    int segment_space_width = segment_width + xunderlinethickness;
-    int segments = width / segment_space_width;
-    for (int i = 0; i < segments; ++i) {
-        XftDrawRect(xw.draw, color, x, y + dc.font.ascent + xunderlineoffset, segment_width, xunderlinethickness);
-        x += segment_space_width;
-    }
-    if (x + half_segment_width < width) {
-        segment_width = width - x - half_segment_width;
-        XftDrawRect(xw.draw, color, x, y + dc.font.ascent + xunderlineoffset, segment_width, xunderlinethickness);
-    }
-}
-
-void drawunderline(Glyph base, Color *color, int x, int y, int width) {
-    switch (base.ulstyle) {
-        case ULINE_NORMAL:
-            XftDrawRect(xw.draw, color, x, y + dc.font.ascent + xunderlineoffset, width, xunderlinethickness);
-            break;
-        case ULINE_DOUBLE: drawunderdouble(color, x, y, width); break;
-        case ULINE_CURL: drawundercurl(color, x, y, width); break;
-        case ULINE_DOT: drawunderdash(color, x, y, width, 1); break;
-        case ULINE_DASH: drawunderdash(color, x, y, width, 2); break;
-    }
-}
-
-void updatelinethickness() {
-#define UPDATE_THICKNESS_(var) x##var = fmax(round(((double)var / font_scale) * (usedfontsize / font_scale)), 1)
-
-    UPDATE_THICKNESS_(strikethroughthickness);
-    UPDATE_THICKNESS_(underlinethickness);
-    UPDATE_THICKNESS_(underlineoffset);
-    UPDATE_THICKNESS_(underdoublethickness);
-    UPDATE_THICKNESS_(underdoublegap);
-#undef UPDATE_THICKNESS_
 }
 
 void xdrawcursor(int cx, int cy, Glyph g, int ox, int oy, Glyph og, Line line, int len) {
