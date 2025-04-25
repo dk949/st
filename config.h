@@ -81,8 +81,8 @@ static unsigned int cursorthickness = 2;
  * (Looks best when they're the same)
  */
 static unsigned int const strikethroughthickness = 2 * font_scale;
-static unsigned int const underlinethickness = 3 * font_scale;
-static unsigned int const underdoublethickness = 2 * font_scale;  // This is the thickness of each of the doubel lines
+static unsigned int const underlinethickness = 2 * font_scale;
+static unsigned int const underdoublethickness = 1 * font_scale;  // This is the thickness of each of the doubel lines
 static unsigned int const underdoublegap = 3 * font_scale;        // This is the thickness of each of the doubel lines
 
 /*
