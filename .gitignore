@@ -1,2 +1,4 @@
 *.o
 st
+gmon.out
+.clangd
