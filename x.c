@@ -76,7 +76,6 @@ static unsigned int xunderdoublegap = underdoublegap;
 static unsigned int xunderlineoffset = underlineoffset;
 static unsigned int xundercurlthickness = undercurlthickness;
 static unsigned int xundercurlamplitude = undercurlamplitude;
-static unsigned int xundercurloffset = undercurloffset;
 
 /* size of title stack */
 #define TITLESTACKSIZE 8
@@ -1194,8 +1193,7 @@ void xinit(int cols, int rows) {
     gcvalues.cap_style = undercurlcap;
     gcvalues.join_style = undercurljoin;
     xw.buf = XCreatePixmap(xw.dpy, xw.win, win.w, win.h, xw.depth);
-    dc.gc =
-        XCreateGC(xw.dpy, xw.buf, GCGraphicsExposures | GCLineWidth | GCLineStyle | GCCapStyle | GCJoinStyle, &gcvalues);
+    dc.gc = XCreateGC(xw.dpy, xw.buf, GCGraphicsExposures | GCLineWidth | GCLineStyle | GCCapStyle | GCJoinStyle, &gcvalues);
     XSetForeground(xw.dpy, dc.gc, dc.col[defaultbg].pixel);
     XFillRectangle(xw.dpy, xw.buf, dc.gc, 0, 0, win.w, win.h);
 
@@ -1538,7 +1536,7 @@ void printpoints(int len, XPoint points[len]) {
 void createsinewave(XPoint *points, double x0, double y0, double width, double height, double freq, int point_count) {
     if (point_count < 2) return;
     // Total number of cycles across the box:
-    double cycles = freq * (width / (double)dc.font.width);
+    double cycles = freq * (width / usedfontsize);
     // Vertical center and amplitude
     double y_mid = y0 + height * 0.5;
     double y_amp = height * 0.5;
@@ -1551,7 +1549,7 @@ void createsinewave(XPoint *points, double x0, double y0, double width, double h
         // angle from 0 to 2π·cycles
         double angle = 2.0 * M_PI * cycles * t;
         // invert sine so +1→top (y0), -1→bottom (y0+height)
-        double y = y_mid - cos(angle) * y_amp;
+        double y = y_mid - sin(angle) * y_amp;
         points[i].x = x;
         points[i].y = y;
     }
@@ -1562,7 +1560,7 @@ void drawundercurl(Color *color, int x, int y, int width) {
     int points_per_w = 10;
     int point_count = width * points_per_w;
     XPoint *points = (XPoint *)xmalloc(sizeof(XPoint) * point_count);
-    createsinewave(points, x, y + dc.font.ascent + xundercurloffset, width, xundercurlamplitude, undercurlfreq, point_count);
+    createsinewave(points, x, y + dc.font.ascent + xunderlineoffset, width, xundercurlamplitude, undercurlfreq, point_count);
     // This is not an XRender based drawing routine, so need to set pixel alpha value
     color->pixel |= (ulong)((ushort)(color->color.alpha >> 8) & 0xff) << 24;
     XSetForeground(xw.dpy, dc.gc, color->pixel);
@@ -1610,8 +1608,6 @@ void updatelinethickness() {
     UPDATE_THICKNESS_(underdoublegap);
     UPDATE_THICKNESS_(undercurlthickness);
     UPDATE_THICKNESS_(undercurlamplitude);
-    UPDATE_THICKNESS_(undercurloffset);
-
 #undef UPDATE_THICKNESS_
     XSetLineAttributes(xw.dpy, dc.gc, xundercurlthickness, undercurlline, undercurlcap, undercurljoin);
 }

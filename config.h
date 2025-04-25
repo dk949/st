@@ -84,12 +84,12 @@ static unsigned int const strikethroughthickness = 2 * font_scale;
 static unsigned int const underlinethickness = 3 * font_scale;
 static unsigned int const underdoublethickness = 2 * font_scale;  // This is the thickness of each of the doubel lines
 static unsigned int const underdoublegap = 3 * font_scale;        // This is the thickness of each of the doubel lines
-static unsigned int const undercurlamplitude = 5 * font_scale;
+static unsigned int const undercurlamplitude = 2 * font_scale;
 static unsigned int const undercurlthickness = 2 * font_scale;
 static unsigned int const undercurljoin = JoinRound;  // JoinMiter, JoinRound or JoinBevel
 static unsigned int const undercurlcap = CapRound;    // CapNotLast, CapButt, CapRound or CapProjecting
 static unsigned int const undercurlline = LineSolid;  // LineSolid, LineOnOffDash, or LineDoubleDash
-static double const undercurlfreq = 1;              // This is in wavelegths/letter
+static double const undercurlfreq = 4.0;              // This is in wavelegths/letter
 
 /*
  * How much is the *bottom* of the underline offset from the bottom of the letters
@@ -97,8 +97,6 @@ static double const undercurlfreq = 1;              // This is in wavelegths/let
  * If it's too big, underline will be drawn on top of the text below it
  */
 static unsigned int const underlineoffset = underlinethickness + 3 * font_scale;
-// Ditto for undercurl
-static unsigned int const undercurloffset = undercurlamplitude - 2 * font_scale;
 
 /*
  * bell volume. It must be a value between -100 and 100. Use 0 for disabling
