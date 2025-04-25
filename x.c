@@ -160,6 +160,7 @@ typedef struct {
     size_t collen;
     Font font, bfont, ifont, ibfont;
     GC gc;
+    GC undercurlgc;
 } DC;
 
 static inline ushort sixd_to_16bit(int);
@@ -1188,14 +1189,21 @@ void xinit(int cols, int rows) {
 
     memset(&gcvalues, 0, sizeof(gcvalues));
     gcvalues.graphics_exposures = False;
+    xw.buf = XCreatePixmap(xw.dpy, xw.win, win.w, win.h, xw.depth);
+    dc.gc = XCreateGC(xw.dpy, xw.buf, GCGraphicsExposures, &gcvalues);
+    XSetForeground(xw.dpy, dc.gc, dc.col[defaultbg].pixel);
+    XFillRectangle(xw.dpy, xw.buf, dc.gc, 0, 0, win.w, win.h);
+
+    memset(&gcvalues, 0, sizeof(gcvalues));
+    gcvalues.graphics_exposures = False;
     gcvalues.line_width = xundercurlthickness;
     gcvalues.line_style = undercurlline;
     gcvalues.cap_style = undercurlcap;
     gcvalues.join_style = undercurljoin;
-    xw.buf = XCreatePixmap(xw.dpy, xw.win, win.w, win.h, xw.depth);
-    dc.gc = XCreateGC(xw.dpy, xw.buf, GCGraphicsExposures | GCLineWidth | GCLineStyle | GCCapStyle | GCJoinStyle, &gcvalues);
-    XSetForeground(xw.dpy, dc.gc, dc.col[defaultbg].pixel);
-    XFillRectangle(xw.dpy, xw.buf, dc.gc, 0, 0, win.w, win.h);
+    dc.undercurlgc =
+        XCreateGC(xw.dpy, xw.buf, GCGraphicsExposures | GCLineWidth | GCLineStyle | GCCapStyle | GCJoinStyle, &gcvalues);
+    // XSetForeground(xw.dpy, dc.gc, dc.col[defaultbg].pixel);
+    // XFillRectangle(xw.dpy, xw.buf, dc.gc, 0, 0, win.w, win.h);
 
     updatelinethickness();
 
@@ -1563,8 +1571,8 @@ void drawundercurl(Color *color, int x, int y, int width) {
     createsinewave(points, x, y + dc.font.ascent + xunderlineoffset, width, xundercurlamplitude, undercurlfreq, point_count);
     // This is not an XRender based drawing routine, so need to set pixel alpha value
     color->pixel |= (ulong)((ushort)(color->color.alpha >> 8) & 0xff) << 24;
-    XSetForeground(xw.dpy, dc.gc, color->pixel);
-    XDrawLines(xw.dpy, xw.buf, dc.gc, points, point_count, CoordModeOrigin);
+    XSetForeground(xw.dpy, dc.undercurlgc, color->pixel);
+    XDrawLines(xw.dpy, xw.buf, dc.undercurlgc, points, point_count, CoordModeOrigin);
 
     free(points);
     XFlush(xw.dpy);
@@ -1609,7 +1617,7 @@ void updatelinethickness() {
     UPDATE_THICKNESS_(undercurlthickness);
     UPDATE_THICKNESS_(undercurlamplitude);
 #undef UPDATE_THICKNESS_
-    XSetLineAttributes(xw.dpy, dc.gc, xundercurlthickness, undercurlline, undercurlcap, undercurljoin);
+    XSetLineAttributes(xw.dpy, dc.undercurlgc, xundercurlthickness, undercurlline, undercurlcap, undercurljoin);
 }
 
 void xdrawcursor(int cx, int cy, Glyph g, int ox, int oy, Glyph og, Line line, int len) {
